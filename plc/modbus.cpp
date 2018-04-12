@@ -11,7 +11,7 @@
 //
 // OpenPLC is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the 
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 // GNU General Public License for more details.
 //
 // You should have received a copy of the GNU General Public License
@@ -119,6 +119,7 @@ void mapUnusedIO()
 
 		if (i >= MIN_16B_RANGE && i <= MAX_16B_RANGE)
 			if (int_memory[i - MIN_16B_RANGE] == NULL) int_memory[i] = &mb_holding_regs[i];
+			//if (int_memory[i - MIN_16B_RANGE] == NULL) int_memory[i - MIN_16B_RANGE] = &mb_holding_regs[i];			
 	}
 
 	pthread_mutex_unlock(&bufferLock);

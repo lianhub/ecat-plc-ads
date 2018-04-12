@@ -105,12 +105,12 @@ void print_usage() {
     printf("protocol\n");
 }
 
-int main(int argc,char **argv)
+int init_plc(int argc,char **argv)
 {
 
     bool modbus_flag = false;
     bool dnp3_flag = false;
-  
+
     int opt;
     opterr = 0;
 
@@ -122,7 +122,7 @@ int main(int argc,char **argv)
       switch (opt) {
         case 'm':
             modbus_flag = true;
-            modbus_port = atoi(optarg); 
+            modbus_port = atoi(optarg);
             break;
         case 'd':
             dnp3_flag = true;
@@ -176,6 +176,8 @@ int main(int argc,char **argv)
         pthread_create(&dnp3_thread, NULL, dnp3Thread, NULL);
     }
 
+    return 0;//return before loop!
+
     //======================================================
     //          PERSISTENT STORAGE INITIALIZATION
     //======================================================
@@ -217,7 +219,7 @@ int main(int argc,char **argv)
 		//make sure the buffer pointers are correct and
 		//attached to the user variables
 		glueVars();
-		
+
 		updateBuffersIn(); //read input image
 
 		pthread_mutex_lock(&bufferLock); //lock mutex
@@ -225,7 +227,7 @@ int main(int argc,char **argv)
 		pthread_mutex_unlock(&bufferLock); //unlock mutex
 
 		updateBuffersOut(); //write output image
-		
+
 		updateTime();
 
 		sleep_until(&timer_start, common_ticktime__);

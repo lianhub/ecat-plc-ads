@@ -1,6 +1,7 @@
 /****************************************************************************/
 #include <sched.h>
 #include "ecat.h"
+#include "plc.h"
 
 /****************************************************************************/
 
@@ -73,6 +74,7 @@ void my_cyclic(void)
 
 int main(int argc, char *argv[])
 {
+    init_plc(argc, argv);
     init_ecat();
     /* Set the initial master time and select a slave to use as the DC
      * reference clock, otherwise pass NULL to auto select the first capable

@@ -1,6 +1,6 @@
 #!/bin/bash
 #cd core
-cd /home/jerry/ecat-plc-ads/plc
+cd /home/pi/ecat-plc-ads/plc
 
 echo Generating object files...
 g++ -I ./lib -c Config0.c
@@ -12,4 +12,4 @@ echo Compiling main program
 g++ *.cpp *.o -o openplc -pthread -fpermissive
 
 #cd ..
-cd /home/jerry/OpenPLC_v2
+cd /home/pi/OpenPLC_v2
