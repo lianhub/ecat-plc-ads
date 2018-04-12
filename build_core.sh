@@ -1,1 +1,1 @@
-g++ *.c -o openplc -lethercat -lrt
+g++ *.cpp -o openplc -lethercat -lrt
