@@ -122,7 +122,7 @@ int char2int(char in)
 }
 
 /*****************************************************************************/
-void config_idns(ec_slave_config_t *sc)
+int config_idns(ec_slave_config_t *sc)
 {
     fprintf(stdout, "start to configure IDN.\n");
     int i, j;
@@ -130,19 +130,21 @@ void config_idns(ec_slave_config_t *sc)
     uint8_t dno ;
     uint16_t idn ;
     char str[600]=" ";
-   
+		uint8_t* data = new uint8_t[300];
+
     for(j=0; j<101; j++){
-       dno = idns[j].dno; 
-       idn = idns[j].idn; 
-       strcpy(str, idns[j].str); 
+       dno = idns[j].dno;
+       idn = idns[j].idn;
+       strcpy(str, idns[j].str);
        data_size = strlen(str)/2;
-       fprintf(stdout, "%3d, %3d:  %d , %x , %s \n", j+1, data_size, idns[j].dno, idns[j].idn, str);
-   
-       for(i=0; i< data_size; i++) str[i] = char2int(str[2*i])*16 + char2int(str[2*i+1]);
-    
-       if (ecrt_slave_config_idn(sc, dno, idn, EC_AL_STATE_PREOP, &str, data_size)) {
+       //fprintf(stdout, "%3d, %3d:  %d , %x , %s \n", j+1, data_size, idns[j].dno, idns[j].idn, str);
+
+       for(i=0; i< data_size; i++) data[i] = char2int(str[2*i])*16 + char2int(str[2*i+1]);
+
+       if (ecrt_slave_config_idn(sc, dno, idn, EC_AL_STATE_PREOP, data, data_size)) {
            fprintf(stderr, "..........Failed to configure IDN.\n");
            return -1;
        }
     }
+		return 0;
 }

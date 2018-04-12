@@ -1,2 +1,2 @@
 
-void config_idns(ec_slave_config_t *sc);
+int config_idns(ec_slave_config_t *sc);
