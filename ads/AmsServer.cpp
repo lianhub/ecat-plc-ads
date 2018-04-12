@@ -1,7 +1,7 @@
 #include "AmsServer.h"
 #include "Log.h"
 
-//#include "ladder.h"
+#include "ladder.h"
 
 AmsServer::AmsServer(IpV4 __destIp):
 	socket(__destIp, 27015),//ADS_TCP_SERVER_PORT),
@@ -43,7 +43,7 @@ void AmsServer::ReceiveFrame(size_t bytesLeft, uint32_t aoeError) const
 		Receive(&header, sizeof(header), &timeout);
 		bytesLeft -= sizeof(header);
                 printf("Request: %x %x %x", header.group(), header.offset(), header.length());
-  //              *int_memory[0]= header.offset();
+                *int_memory[0]= header.offset();
 		//Receive(request->buffer, bytesLeft, 10);
 		/*
 		if (request->bytesRead) {

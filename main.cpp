@@ -2,6 +2,7 @@
 #include <sched.h>
 #include "ecat.h"
 #include "plc.h"
+#include "ladder.h"
 
 /****************************************************************************/
 
@@ -43,8 +44,15 @@ void my_cyclic(void)
 	if(toggle==0) EC_WRITE_U16(domain1_pd + off_control_out2+6, 0xe000);
 	else          EC_WRITE_U16(domain1_pd + off_control_out2+6, 0xe400);
         toggle = !toggle;
-        if (!(cycle_counter % 2200)) { tgn = !tgn;}
+        if (!(cycle_counter % 2200)) { tgn = !tgn;}/*
         if (tgn==0) {
+        	EC_WRITE_U32(domain1_pd + off_velocity_out1,   0x10ff00);
+        	EC_WRITE_U32(domain1_pd + off_velocity_out2+6, 0xffef00ff);	}
+	else{
+        	EC_WRITE_U32(domain1_pd + off_velocity_out1,   0xffef00ff);
+        	EC_WRITE_U32(domain1_pd + off_velocity_out2+6, 0x10ff00);	}
+        */
+	if (*int_memory[0]==0) {
         	EC_WRITE_U32(domain1_pd + off_velocity_out1,   0x10ff00);
         	EC_WRITE_U32(domain1_pd + off_velocity_out2+6, 0xffef00ff);	}
 	else{
