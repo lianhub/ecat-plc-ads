@@ -57,6 +57,9 @@ private:
 
 struct AoERequestHeader {
     static const uint32_t SDO_UPLOAD = 0xF302;
+    
+    AoERequestHeader() :leGroup(0), leOffset(0), leLength(0)
+  	{}
 
     AoERequestHeader(uint16_t sdoIndex, uint8_t sdoSubIndex, uint32_t dataLength)
         : AoERequestHeader(SDO_UPLOAD, ((uint32_t)sdoIndex) << 16 | sdoSubIndex, dataLength)
@@ -67,6 +70,21 @@ struct AoERequestHeader {
         leOffset(qToLittleEndian<uint32_t>(indexOffset)),
         leLength(qToLittleEndian<uint32_t>(dataLength))
     {}
+
+    uint32_t group() const
+    {
+        return qFromLittleEndian<uint32_t>((const uint8_t*)&leGroup);
+    }
+
+    uint32_t offset() const
+    {
+        return qFromLittleEndian<uint32_t>((const uint8_t*)&leOffset);
+    }
+
+    uint32_t length() const
+    {
+        return qFromLittleEndian<uint32_t>((const uint8_t*)&leLength);
+    }
 
 private:
     const uint32_t leGroup;

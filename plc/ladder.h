@@ -101,6 +101,7 @@ void sleep_until(struct timespec *ts, int delay);
 
 //server.cpp
 void startServer(int port);
+void adserver();
 
 //modbus.cpp
 int processModbusMessage(unsigned char *buffer, int bufferSize);

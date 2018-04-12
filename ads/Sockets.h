@@ -46,10 +46,12 @@ struct Socket {
         TimeoutEx(const char* _Message) : std::runtime_error(_Message)
         {}
     };
+public:
+    SOCKET m_Socket;
 
 protected:
     int m_WSAInitialized;
-    SOCKET m_Socket;
+    //SOCKET m_Socket;
     sockaddr_in m_SockAddress;
     const sockaddr* const m_DestAddr;
     const size_t m_DestAddrLen;
@@ -62,6 +64,9 @@ protected:
 struct TcpSocket : Socket {
     TcpSocket(IpV4 ip, uint16_t port);
     uint32_t Connect() const;
+
+    uint32_t Listen() const;
+	  uint32_t Accept(SOCKET sock);// const;
 };
 
 struct UdpSocket : Socket {

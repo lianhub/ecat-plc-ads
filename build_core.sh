@@ -9,6 +9,6 @@ echo Generating glueVars.cpp
 
 cd ..
 echo Compiling main program
-g++ *.cpp ./plc/*.cpp ./plc/Res0.o ./plc/Config0.o -o openplc -I ./plc -lethercat -lrt -pthread -fpermissive
+g++ *.cpp ./ads/*.cpp ./plc/*.cpp ./plc/Res0.o ./plc/Config0.o -o openplc -I ./plc -lethercat -lrt -pthread -fpermissive
 
 cd /home/pi/OpenPLC_v2

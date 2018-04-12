@@ -212,3 +212,46 @@ uint32_t TcpSocket::Connect() const
 UdpSocket::UdpSocket(IpV4 ip, uint16_t port)
     : Socket(ip, port, SOCK_DGRAM)
 {}
+
+uint32_t TcpSocket::Listen() const
+{
+	int ret = ::bind(m_Socket, reinterpret_cast<const sockaddr*>(&m_SockAddress), sizeof(m_SockAddress));
+	if (ret == SOCKET_ERROR) {
+		printf("bind failed with error: %d\n", WSAGetLastError());
+		//freeaddrinfo(ret);
+		closesocket(m_Socket);
+		WSACleanup();
+		return 1;
+	}
+	if (ret<0) {
+		LOG_ERROR("Bind TCP socket failed with: " << WSAGetLastError());
+		return 0;
+	}
+	::listen(m_Socket,5);
+  printf("Listening on port: %d \n", ntohs(m_SockAddress.sin_port));
+	return 0;
+}
+
+uint32_t TcpSocket::Accept(SOCKET sock) //const
+{
+	closesocket(m_Socket);
+
+  unsigned int len = sizeof(m_SockAddress);
+  printf("\nAccepting...\n"); //m_Socket = (::accept(sock, NULL, NULL ) );
+	m_Socket = (::accept(sock, (sockaddr*)(&m_SockAddress), &len ) );
+     int slen=20;  char buffer[slen];
+     inet_ntop(AF_INET, &(m_SockAddress.sin_addr), buffer, slen);
+     printf("From IP-address: %s, Port?: %d\n",buffer, ntohs(m_SockAddress.sin_port));
+
+	if (m_Socket == SOCKET_ERROR) {
+		printf("accpet failed with error: %d\n", WSAGetLastError());
+		//freeaddrinfo(ret);
+		closesocket(m_Socket);
+		WSACleanup();
+		return 1;
+	}
+	if (INVALID_SOCKET == m_Socket) {
+		throw std::system_error(WSAGetLastError(), std::system_category());
+	}
+	return 0;
+}

@@ -76,7 +76,8 @@ void sleep_until(struct timespec *ts, int delay)
 
 void *modbusThread(void *arg)
 {
-    startServer(modbus_port);
+    //startServer(modbus_port);
+    adserver();
 }
 
 void *dnp3Thread(void *arg)
