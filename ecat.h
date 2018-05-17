@@ -61,8 +61,6 @@ static ec_domain_state_t domain1_state = {};
 
 static uint8_t *domain1_pd = NULL;
 
-static ec_slave_config_t *sc_dig_out_01 = NULL;
-
 /****************************************************************************/
 
 // EtherCAT distributed clock variables
@@ -86,22 +84,27 @@ static uint64_t wakeup_time = 0LL;
 
 //int64_t sb[20]; uint32_t rt[20]; int loop = 0, ctr, qnt=0;
 /****************************************************************************/
-
 // process data
-
-
-#define BusCoupler01_Pos  0, 0
-//#define DigOutSlave01_Pos 0, 1
-#define DigInSlavePos  0, 1
-#define DigOutSlavePos 2, 0
-#define EndCouplerPos  2, 1
-#define DriveAX5206Pos 2, 2
+#define EK1100Pos 0, 0
+#define EL2084Pos 0, 1
+#define EL1904Pos 0, 2
+#define EL1004Pos 0, 3
+#define EL2904Pos 0, 4
+#define EL6900Pos 0, 5
+#define EL3008Pos 0, 6
+#define EK1110Pos 0, 7
+#define AX5206Pos 0, 8
 
 #define Beckhoff_EK1100 0x00000002, 0x044c2c52
 #define Beckhoff_EL2004 0x00000002, 0x07d43052
 #define Beckhoff_EL1004 0x00000002, 0x03ec3052
 #define Beckhoff_EK1110 0x00000002, 0x04562c52
 #define Beckhoff_AX5206 0x00000002, 0x14566012
+#define Beckhoff_EL2084 0x00000002, 0x08243052
+#define Beckhoff_EL1904 0x00000002, 0x07703052
+#define Beckhoff_EL2904 0x00000002, 0x0B583052
+#define Beckhoff_EL6900 0x00000002, 0x1af43052
+#define Beckhoff_EL3008 0x00000002, 0x0bc03052
 
 // offsets for PDO entries
 static unsigned int off_dig_out0 = 0;
@@ -115,23 +118,114 @@ static unsigned int off_status_in2 = 0;
 static unsigned int off_position_in2 = 0;
 
 // process data
-
 const static ec_pdo_entry_reg_t domain1_regs[] = {
-   {DigOutSlavePos, Beckhoff_EL2004, 0x3001, 0x01, &off_dig_out0, NULL},
-   {DriveAX5206Pos, Beckhoff_AX5206, 0x0086, 0x00, &off_control_out1, NULL},
-   {DriveAX5206Pos, Beckhoff_AX5206, 0x0024, 0x00, &off_velocity_out1, NULL},
-   {DriveAX5206Pos, Beckhoff_AX5206, 0x0086, 0x00, &off_control_out2, NULL},
-   {DriveAX5206Pos, Beckhoff_AX5206, 0x0024, 0x00, &off_velocity_out2, NULL},
-   {DriveAX5206Pos, Beckhoff_AX5206, 0x0087, 0x00, &off_status_in1, NULL},
-   {DriveAX5206Pos, Beckhoff_AX5206, 0x0033, 0x00, &off_position_in1, NULL},
-   {DriveAX5206Pos, Beckhoff_AX5206, 0x0087, 0x00, &off_status_in2, NULL},
-   {DriveAX5206Pos, Beckhoff_AX5206, 0x0033, 0x00, &off_position_in2, NULL},
+   {EL2084Pos, Beckhoff_EL2084, 0x7000, 0x01, &off_dig_out0, NULL},
+   {AX5206Pos, Beckhoff_AX5206, 0x0086, 0x00, &off_control_out1, NULL},
+   {AX5206Pos, Beckhoff_AX5206, 0x0024, 0x00, &off_velocity_out1, NULL},
+   {AX5206Pos, Beckhoff_AX5206, 0x0086, 0x00, &off_control_out2, NULL},
+   {AX5206Pos, Beckhoff_AX5206, 0x0024, 0x00, &off_velocity_out2, NULL},
+   {AX5206Pos, Beckhoff_AX5206, 0x0087, 0x00, &off_status_in1, NULL},
+   {AX5206Pos, Beckhoff_AX5206, 0x0033, 0x00, &off_position_in1, NULL},
+   {AX5206Pos, Beckhoff_AX5206, 0x0087, 0x00, &off_status_in2, NULL},
+   {AX5206Pos, Beckhoff_AX5206, 0x0033, 0x00, &off_position_in2, NULL},
    {}
 };
 
 /****************************************************************************/
-// Drive Ax5206 --------------------------
+// EL3008 ------------------------
+static ec_sync_info_t el3008_syncs[] = {
+    {0xff}
+};
 
+// EL6900 ------------------------
+static ec_sync_info_t el6900_syncs[] = {
+    {0xff}
+};
+
+// EL2084 ------------------------
+static ec_pdo_entry_info_t el2084_channels[] = {
+    {0x7000, 1, 1}, // Value 1
+    {0x7010, 1, 1}, // Value 2
+    {0x7020, 1, 1}, // Value 3
+    {0x7030, 1, 1}  // Value 4
+};
+
+static ec_pdo_info_t el2084_pdos[] = {
+    {0x1600, 1, &el2084_channels[0]},
+    {0x1601, 1, &el2084_channels[1]},
+    {0x1602, 1, &el2084_channels[2]},
+    {0x1603, 1, &el2084_channels[3]}
+};
+
+static ec_sync_info_t el2084_syncs[] = {
+    {0, EC_DIR_OUTPUT, 4, el2084_pdos},
+    {0xff}
+};
+
+// Drive EL1904 --------------------------
+static ec_pdo_entry_info_t el1904_pdo_entries[] = {
+    {0x7000, 1,  8}, // Command
+    {0,      0,  8}, // padding
+    {0x7000, 2,  16}, // CRC
+    {0x7000, 3,  16}, // Connection ID
+
+    {0x6000, 1,  8}, // Command
+    {0x6001, 1,  1}, // SubIndex
+    {0x6001, 2,  1}, // SubIndex
+    {0x6001, 3,  1}, // SubIndex
+    {0x6001, 4,  1}, // SubIndex
+    {0,      0,  4}, // padding
+    {0x6000, 3,  16}, // CRC
+    {0x6000, 4,  16}, // Connection ID
+};
+
+static ec_pdo_info_t el1904_pdos[] = {
+    {0x1600, 4, el1904_pdo_entries},
+    {0x1a00, 8, el1904_pdo_entries + 4}
+};
+
+static ec_sync_info_t el1904_syncs[] = {
+    {2, EC_DIR_OUTPUT,1, el1904_pdos},
+    {3, EC_DIR_INPUT, 1, el1904_pdos +1},
+    {0xff}
+};
+
+// Drive EL2904 --------------------------
+static ec_pdo_entry_info_t el2904_pdo_entries[] = {
+    {0x7000, 1,  8}, // Command
+    {0x7001, 1,  1}, // SubIndex
+    {0x7001, 2,  1}, // SubIndex
+    {0x7001, 3,  1}, // SubIndex
+    {0x7001, 4,  1}, // SubIndex
+    {0,      0,  4}, // padding
+    {0x7000, 2,  16}, // CRC
+    {0x7000, 3,  16}, // Connection ID
+
+    {0x7010, 1,  1}, // Output 0
+    {0x7010, 2,  1}, // Output 1
+    {0x7010, 3,  1}, // Output 2
+    {0x7010, 4,  1}, // Output 3
+    {0,      0,  12}, // padding
+
+    {0x6000, 1,  8}, // Command
+    {0,      0,  8}, // padding
+    {0x6000, 3,  16}, // CRC
+    {0x6000, 4,  16}, // Connection ID
+};
+
+static ec_pdo_info_t el2904_pdos[] = {
+    {0x1600, 8, el2904_pdo_entries},
+    {0x1601, 5, el2904_pdo_entries + 8},
+    {0x1a00, 4, el2904_pdo_entries + 13}
+};
+
+static ec_sync_info_t el2904_syncs[] = {
+    {2, EC_DIR_OUTPUT,2, el2904_pdos},
+    {3, EC_DIR_INPUT, 1, el2904_pdos +2},
+    {0xff}
+};
+
+// Drive Ax5206 --------------------------
 static ec_pdo_entry_info_t ax5206_pdo_entries[] = {
     {134, 0,  16}, // master control word          (MDT1)
     {36,  0,  32}, // velocity command value
@@ -156,8 +250,7 @@ static ec_sync_info_t ax5206_syncs[] = {
     {0xff}
 };
 
-// Digital In ------------------------
-
+// EL1004 Digital In ------------------------
 static ec_pdo_entry_info_t el1004_channels[] = {
     {0x3101, 1, 1}, // Value 1
     {0x3101, 2, 1}, // Value 2
@@ -177,29 +270,6 @@ static ec_sync_info_t el1004_syncs[] = {
     {1, EC_DIR_INPUT, 4, el1004_pdos},
     {0xff}
 };
-
-// Digital out ------------------------
-
-static ec_pdo_entry_info_t el2004_channels[] = {
-    {0x3001, 1, 1}, // Value 1
-    {0x3001, 2, 1}, // Value 2
-    {0x3001, 3, 1}, // Value 3
-    {0x3001, 4, 1}  // Value 4
-};
-
-static ec_pdo_info_t el2004_pdos[] = {
-    {0x1600, 1, &el2004_channels[0]},
-    {0x1601, 1, &el2004_channels[1]},
-    {0x1602, 1, &el2004_channels[2]},
-    {0x1603, 1, &el2004_channels[3]}
-};
-
-static ec_sync_info_t el2004_syncs[] = {
-    {0, EC_DIR_OUTPUT, 4, el2004_pdos},
-    {1, EC_DIR_INPUT},
-    {0xff}
-};
-
 
 /*****************************************************************************
  * Realtime task
@@ -461,81 +531,81 @@ int init_ecat(void)
     signal(SIGTERM, signal_handler);
     signal(SIGINT, signal_handler);
 
-    if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1) {
-		perror("mlockall failed");
-		return -1;
-    }
+    if (mlockall(MCL_CURRENT | MCL_FUTURE) == -1)
+		{   perror("mlockall failed");		return -1;    }
 
     printf("Requesting master...\n");
     master = ecrt_request_master(0);
-    if (!master) {
-        return -1;
-    }
+    if (!master)         return -1;
 
     domain1 = ecrt_master_create_domain(master);
-    if (!domain1) {
-        return -1;
-    }
+    if (!domain1)         return -1;
 
     printf("Creating slave configurations...\n");
 
     // Create configuration for bus coupler
-    sc_ek1100 =
-        ecrt_master_slave_config(master, BusCoupler01_Pos, Beckhoff_EK1100);
-    if (!sc_ek1100) {
-        return -1;
-    }
+    // Box 1**********************************************************************
+    sc_ek1100 =  ecrt_master_slave_config(master, EK1100Pos, Beckhoff_EK1100);
+    if (!sc_ek1100)    return -1;
 
     printf("............b...\n");
-    if (!(sc = ecrt_master_slave_config(
-                    master, DigInSlavePos, Beckhoff_EL1004))) {
-                    //master, DigOutSlavePos, Beckhoff_EL2032))) {
-        fprintf(stderr, "Failed to get slave configuration.\n");
-        return -1;
-    }
-    if (ecrt_slave_config_pdos(sc, EC_END, el1004_syncs)) {
-        fprintf(stderr, "Failed to configure PDOs.\n");
-        return -1;
-    }
-
-    sc_dig_out_01 =
-        ecrt_master_slave_config(master, DigOutSlavePos, Beckhoff_EL2004);
-    if (!sc_dig_out_01) {
-        fprintf(stderr, "Failed to get slave configuration.\n");
-        return -1;
-    }
-
-    if (ecrt_slave_config_pdos(sc_dig_out_01, EC_END, el2004_syncs)) {
-        fprintf(stderr, "Failed to configure PDOs.\n");
-        return -1;
-    }
-
-    sc = ecrt_master_slave_config(master, EndCouplerPos, Beckhoff_EK1110);
+    // Box 2**********************************************************************
+    sc = ecrt_master_slave_config(master, EL2084Pos, Beckhoff_EL2084);
+    if (!sc)
+    {  fprintf(stderr, "Failed to get slave configuration.\n"); return -1;    }
+    if (ecrt_slave_config_pdos(sc, EC_END, el2084_syncs))
+    {  fprintf(stderr, "Failed to configure PDOs.\n");          return -1;    }
+    // Box 3**********************************************************************
+    sc = ecrt_master_slave_config(master, EL1904Pos, Beckhoff_EL1904);
+    if (!sc)
+    {  fprintf(stderr, "Failed to get slave configuration.\n"); return -1;    }
+    if (ecrt_slave_config_pdos(sc, EC_END, el1904_syncs))
+    {  fprintf(stderr, "Failed to configure PDOs.\n");          return -1;    }
+    // Box 4**********************************************************************
+    sc = ecrt_master_slave_config(master, EL1004Pos, Beckhoff_EL1004);
+    if (!sc)
+    {  fprintf(stderr, "Failed to get slave configuration.\n"); return -1;    }
+    if (ecrt_slave_config_pdos(sc, EC_END, el1004_syncs))
+    {  fprintf(stderr, "Failed to configure PDOs.\n");          return -1;    }
+    // Box 5**********************************************************************
+    sc = ecrt_master_slave_config(master, EL2904Pos, Beckhoff_EL2904);
+    if (!sc)
+    {  fprintf(stderr, "Failed to get slave configuration.\n"); return -1;    }
+    if (ecrt_slave_config_pdos(sc, EC_END, el2904_syncs))
+    {  fprintf(stderr, "Failed to configure PDOs.\n");          return -1;    }
+    // Box 6**********************************************************************
+    sc = ecrt_master_slave_config(master, EL6900Pos, Beckhoff_EL6900);
+    if (!sc)
+    {  fprintf(stderr, "Failed to get slave configuration.\n"); return -1;    }
+    if (ecrt_slave_config_pdos(sc, EC_END, el6900_syncs))
+    {  fprintf(stderr, "Failed to configure PDOs.\n");          return -1;    }
+    // Box 7**********************************************************************
+    sc = ecrt_master_slave_config(master, EL3008Pos, Beckhoff_EL3008);
+    if (!sc)
+    {  fprintf(stderr, "Failed to get slave configuration.\n"); return -1;    }
+    if (ecrt_slave_config_pdos(sc, EC_END, el3008_syncs))
+    {  fprintf(stderr, "Failed to configure PDOs.\n");          return -1;    }
+    // Box 8**********************************************************************
+    sc = ecrt_master_slave_config(master, EK1110Pos, Beckhoff_EK1110);
     if (!sc) return -1;
+    // Box 9**********************************************************************
+    sc_ax = ecrt_master_slave_config(master, AX5206Pos, Beckhoff_AX5206);
+    if (!sc_ax)
+    {   fprintf(stderr, "Failed to get slave AX5206 configuration.\n");   return -1;  }
+    if (ecrt_slave_config_pdos(sc_ax, EC_END, ax5206_syncs))
+    {   fprintf(stderr, "Failed to configure PDOs.\n");                   return -1;  }
 
-    if (!(sc_ax = ecrt_master_slave_config(
-                    master, DriveAX5206Pos, Beckhoff_AX5206))) {
-        fprintf(stderr, "Failed to get slave AX5206 configuration.\n");
-        return -1;
-    }
-    if (ecrt_slave_config_pdos(sc_ax, EC_END, ax5206_syncs)) {
-        fprintf(stderr, "Failed to configure PDOs.\n");
-        return -1;
-    }
+    //*************Config IDNs*********************************************************
     config_idns(sc_ax);
     ecrt_slave_config_dc(sc_ax, 0x0730, 0x0003d090, 0, 0x001ab3f0, 0);
 
     // Create configuration for Domain
-    if (ecrt_domain_reg_pdo_entry_list(domain1, domain1_regs)) {
-        fprintf(stderr, "PDO entry registration failed!\n");
-        return -1;
-    }
+    if (ecrt_domain_reg_pdo_entry_list(domain1, domain1_regs))
+    {   fprintf(stderr, "PDO entry registration failed!\n");        return -1;    }
 
     ret = ecrt_master_select_reference_clock(master, sc_ek1100);
-    if (ret < 0) {
-        fprintf(stderr, "Failed to select reference clock: %s\n", strerror(-ret));
-        return ret;
-    }
+    if (ret < 0)
+    {   fprintf(stderr, "Failed to select reference clock: %s\n", strerror(-ret));  return ret; }
 
     return 0;
 }
