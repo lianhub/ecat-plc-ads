@@ -27,6 +27,9 @@ void my_cyclic(void)
         // receive EtherCAT
         ecrt_master_receive(master);
         ecrt_domain_process(domain1);
+        ecrt_domain_process(domain2);
+        ecrt_domain_process(domain3);
+        ecrt_domain_process(domain4);
 
         rt_check_domain_state();
 
@@ -61,6 +64,9 @@ void my_cyclic(void)
 
         // queue process data
         ecrt_domain_queue(domain1);
+        ecrt_domain_queue(domain2);
+        ecrt_domain_queue(domain3);
+        ecrt_domain_queue(domain4);
 
         // sync distributed clock just before master_send to set
         // most accurate master clock time

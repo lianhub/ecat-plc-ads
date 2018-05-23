@@ -58,8 +58,11 @@ static ec_master_state_t master_state = {};
 
 static ec_domain_t *domain1 = NULL;
 static ec_domain_state_t domain1_state = {};
-
 static uint8_t *domain1_pd = NULL;
+
+static ec_domain_t *domain2 = NULL;
+static ec_domain_t *domain3 = NULL;
+static ec_domain_t *domain4 = NULL;
 
 /****************************************************************************/
 
@@ -130,6 +133,52 @@ const static ec_pdo_entry_reg_t domain1_regs[] = {
    {AX5206Pos, Beckhoff_AX5206, 0x0033, 0x00, &off_position_in2, NULL},
    {}
 };
+static unsigned int off_el1904_in = 0;
+static unsigned int off_el1904_out = 0;
+static unsigned int off_el2904_in = 0;
+static unsigned int off_el2904_out1 = 0;
+static unsigned int off_el2904_out2 = 0;
+
+static unsigned int off_el6900_in1 = 0;
+static unsigned int off_el6900_out1 = 0;
+static unsigned int off_el6900_in2 = 0;
+static unsigned int off_el6900_out2 = 0;
+static unsigned int off_el6900_in3 = 0;
+static unsigned int off_el6900_out3 = 0;
+static unsigned int off_el6900_in4 = 0;
+static unsigned int off_el6900_out4 = 0;
+static unsigned int off_el6900_in5 = 0;
+
+const static ec_pdo_entry_reg_t domain2_regs[] = {
+   {EL1904Pos, Beckhoff_EL1904, 0x7000, 1, &off_el1904_out, NULL}, //6 bytes
+   {EL2904Pos, Beckhoff_EL2904, 0x7000, 1, &off_el2904_out1, NULL}, //6 bytes
+   {EL2904Pos, Beckhoff_EL2904, 0x7010, 1, &off_el2904_out2, NULL}, //2 bytes
+   //{EL1904Pos, Beckhoff_EL1904, 0x6000, 1, &off_el1904_in, NULL}, //6 bytes
+   //{EL2904Pos, Beckhoff_EL2904, 0x6000, 1, &off_el2904_in, NULL}, //6 bytes
+   {}
+};
+const static ec_pdo_entry_reg_t domain3_regs[] = {
+   //{EL1904Pos, Beckhoff_EL1904, 0x7000, 1, &off_el1904_out, NULL}, //6 bytes
+   //{EL2904Pos, Beckhoff_EL2904, 0x7000, 1, &off_el2904_out1, NULL}, //6 bytes
+   //{EL2904Pos, Beckhoff_EL2904, 0x7010, 1, &off_el2904_out2, NULL}, //2 bytes
+   {EL1904Pos, Beckhoff_EL1904, 0x6000, 1, &off_el1904_in, NULL}, //6 bytes
+   {EL2904Pos, Beckhoff_EL2904, 0x6000, 1, &off_el2904_in, NULL}, //6 bytes
+   //{EL6900Pos, Beckhoff_EL6900, 0x6000, 1, &off_el6900_in1, NULL}, //6 bytes
+   {}
+};
+
+const static ec_pdo_entry_reg_t domain4_regs[] = {
+   {EL6900Pos, Beckhoff_EL6900, 0x6000, 1, &off_el6900_in1, NULL}, //6 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0x6010, 1, &off_el6900_in2, NULL}, //6 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0xF101, 0, &off_el6900_in3, NULL}, //1 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0x2110, 1, &off_el6900_in4, NULL}, //6 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0xF100, 1, &off_el6900_in5, NULL}, //1 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0x7000, 1, &off_el6900_out1, NULL}, //6 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0x7010, 1, &off_el6900_out2, NULL}, //6 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0xF201, 0, &off_el6900_out3, NULL}, //1 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0xF200, 1, &off_el6900_out4, NULL}, //1 bytes
+   {}
+};
 
 /****************************************************************************/
 // EL3008 ------------------------
@@ -138,7 +187,86 @@ static ec_sync_info_t el3008_syncs[] = {
 };
 
 // EL6900 ------------------------
+static ec_pdo_entry_info_t el6900_conn1_tx[] = {
+    {0x6000, 1, 8}, // FSOE CMD
+    {0x6001, 1, 1}, // FSOE input
+    {0x6001, 2, 1}, // FSOE input
+    {0x6001, 3, 1}, // FSOE input
+    {0x6001, 4, 1}, // FSOE input
+    {0,      0, 4}, //
+    {0x6000, 3, 16}, // FSOE CRC_0
+    {0x6000, 2, 16}, // FSOE ConnID
+};
+static ec_pdo_entry_info_t el6900_conn2_tx[] = {
+    {0x6010, 1, 8}, // FSOE CMD
+    {0,      0, 8}, //
+    {0x6010, 3, 16}, // FSOE CRC_0
+    {0x6010, 2, 16}, // FSOE ConnID
+};
+static ec_pdo_entry_info_t el6900_conn1_rx[] = {
+    {0x7000, 1, 8}, // FSOE CMD
+    {0,      0, 8}, //
+    {0x7000, 3, 16}, // FSOE CRC_0
+    {0x7000, 2, 16}, // FSOE ConnID
+};
+static ec_pdo_entry_info_t el6900_conn2_rx[] = {
+    {0x7010, 1, 8}, // FSOE CMD
+    {0x7011, 1, 1}, // FSOE output
+    {0x7011, 2, 1}, // FSOE output
+    {0x7011, 3, 1}, // FSOE output
+    {0x7011, 4, 1}, // FSOE output
+    {0,      0, 4}, //
+    {0x7010, 3, 16}, // FSOE CRC_0
+    {0x7010, 2, 16}, // FSOE ConnID
+};
+static ec_pdo_entry_info_t el6900_out_var[] = {
+    {0xF101, 0, 1}, //
+    {0xF101, 1, 1}, //
+    {0xF101, 2, 1}, //
+    {0xF101, 3, 1}, //
+    {0,      0, 4}, //
+};
+static ec_pdo_entry_info_t el6900_in_var[] = {
+    {0xF201, 0, 1}, //
+    {0xF201, 1, 1}, //
+    {0xF201, 2, 1}, //
+    {0xF201, 3, 1}, //
+    {0xF201, 4, 1}, //
+    {0,      0, 3}, //
+};
+static ec_pdo_entry_info_t el6900_conn_info[] = {
+    {0x2110, 1, 16}, //
+    {0x2110, 2, 16}, //
+};
+static ec_pdo_entry_info_t el6900_dev_in[] = {
+    {0xF100, 1,   3}, //
+    {0,      0,   4}, //
+    {0xF100, 8,   1}, //
+    {0xF100, 9,   1}, //
+    {0xF100, 0xA, 1}, //
+    {0,      0,   4}, //
+    {0xF100, 0xF, 1}, //
+    {0xF100, 0x10,1}, //
+};
+static ec_pdo_entry_info_t el6900_dev_out[] = {
+    {0xF200, 1, 16}, //
+};
+
+static ec_pdo_info_t el6900_pdos[] = {
+  {0x1A00, 8, el6900_conn1_tx}, //SM-3, IN
+  {0x1A01, 4, el6900_conn2_tx}, //SM-3, IN
+  {0x1BF0, 5, el6900_out_var},  //SM-3, IN
+  {0x1BF9, 2, el6900_conn_info},//SM-3, IN
+  {0x1BFF, 8, el6900_dev_in},   //SM-3, IN
+  {0x1600, 4, el6900_conn1_rx}, //SM-2, OUT
+  {0x1601, 8, el6900_conn2_rx}, //SM-2, OUT
+  {0x17F0, 6, el6900_in_var},   //SM-2, OUT
+  {0x17FF, 1, el6900_dev_out},  //SM-2, OUT
+};
+
 static ec_sync_info_t el6900_syncs[] = {
+    {3, EC_DIR_INPUT, 5, el6900_pdos +0},
+    {2, EC_DIR_OUTPUT,4, el6900_pdos +5},  
     {0xff}
 };
 
@@ -166,22 +294,22 @@ static ec_sync_info_t el2084_syncs[] = {
 static ec_pdo_entry_info_t el1904_pdo_entries[] = {
     {0x7000, 1,  8}, // Command
     {0,      0,  8}, // padding
-    {0x7000, 2,  16}, // CRC
-    {0x7000, 3,  16}, // Connection ID
+    {0x7000, 3,  16}, // CRC
+    {0x7000, 2,  16}, // Connection ID
 
     {0x6000, 1,  8}, // Command
-    {0x6001, 1,  1}, // SubIndex
-    {0x6001, 2,  1}, // SubIndex
-    {0x6001, 3,  1}, // SubIndex
-    {0x6001, 4,  1}, // SubIndex
+    {0x6001, 1,  1}, // In1
+    {0x6001, 2,  1}, // In2
+    {0x6001, 3,  1}, // In3
+    {0x6001, 4,  1}, // In4
     {0,      0,  4}, // padding
     {0x6000, 3,  16}, // CRC
-    {0x6000, 4,  16}, // Connection ID
+    {0x6000, 2,  16}, // Connection ID
 };
 
 static ec_pdo_info_t el1904_pdos[] = {
     {0x1600, 4, el1904_pdo_entries},
-    {0x1a00, 8, el1904_pdo_entries + 4}
+    {0x1A00, 8, el1904_pdo_entries + 4}
 };
 
 static ec_sync_info_t el1904_syncs[] = {
@@ -193,30 +321,30 @@ static ec_sync_info_t el1904_syncs[] = {
 // Drive EL2904 --------------------------
 static ec_pdo_entry_info_t el2904_pdo_entries[] = {
     {0x7000, 1,  8}, // Command
-    {0x7001, 1,  1}, // SubIndex
-    {0x7001, 2,  1}, // SubIndex
-    {0x7001, 3,  1}, // SubIndex
-    {0x7001, 4,  1}, // SubIndex
+    {0x7001, 1,  1}, // FSOE out1
+    {0x7001, 2,  1}, // FSOE out2
+    {0x7001, 3,  1}, // FSOE out3
+    {0x7001, 4,  1}, // FSOE out4
     {0,      0,  4}, // padding
-    {0x7000, 2,  16}, // CRC
-    {0x7000, 3,  16}, // Connection ID
+    {0x7000, 3,  16}, // CRC
+    {0x7000, 2,  16}, // Connection ID
 
-    {0x7010, 1,  1}, // Output 0
-    {0x7010, 2,  1}, // Output 1
-    {0x7010, 3,  1}, // Output 2
-    {0x7010, 4,  1}, // Output 3
+    {0x7010, 1,  1}, // Drive Output 0
+    {0x7010, 2,  1}, // Drive Output 1
+    {0x7010, 3,  1}, // Drive Output 2
+    {0x7010, 4,  1}, // Drive Output 3
     {0,      0,  12}, // padding
 
     {0x6000, 1,  8}, // Command
     {0,      0,  8}, // padding
     {0x6000, 3,  16}, // CRC
-    {0x6000, 4,  16}, // Connection ID
+    {0x6000, 2,  16}, // Connection ID
 };
 
 static ec_pdo_info_t el2904_pdos[] = {
     {0x1600, 8, el2904_pdo_entries},
     {0x1601, 5, el2904_pdo_entries + 8},
-    {0x1a00, 4, el2904_pdo_entries + 13}
+    {0x1A00, 4, el2904_pdo_entries + 13}
 };
 
 static ec_sync_info_t el2904_syncs[] = {
@@ -252,22 +380,21 @@ static ec_sync_info_t ax5206_syncs[] = {
 
 // EL1004 Digital In ------------------------
 static ec_pdo_entry_info_t el1004_channels[] = {
-    {0x3101, 1, 1}, // Value 1
-    {0x3101, 2, 1}, // Value 2
-    {0x3101, 3, 1}, // Value 3
-    {0x3101, 4, 1}  // Value 4
+    {0x6000, 1, 1}, //
+    {0x6010, 1, 1}, // edm, inVar-5
+    {0x6020, 1, 1}, // RestartEstopRemote
+    {0x6030, 1, 1}  // TransformerTemp
 };
 
 static ec_pdo_info_t el1004_pdos[] = {
-    {0x1a00, 1, &el1004_channels[0]},
-    {0x1a01, 1, &el1004_channels[1]},
-    {0x1a02, 1, &el1004_channels[2]},
-    {0x1a03, 1, &el1004_channels[3]}
+    {0x1A00, 1, &el1004_channels[0]},
+    {0x1A01, 1, &el1004_channels[1]},
+    {0x1A02, 1, &el1004_channels[2]},
+    {0x1A03, 1, &el1004_channels[3]}
 };
 
 static ec_sync_info_t el1004_syncs[] = {
-	{0, EC_DIR_OUTPUT},
-    {1, EC_DIR_INPUT, 4, el1004_pdos},
+    {0, EC_DIR_INPUT, 4, el1004_pdos},
     {0xff}
 };
 
@@ -540,6 +667,12 @@ int init_ecat(void)
 
     domain1 = ecrt_master_create_domain(master);
     if (!domain1)         return -1;
+    domain2 = ecrt_master_create_domain(master);
+    if (!domain2)         return -1;
+    domain3 = ecrt_master_create_domain(master);
+    if (!domain3)         return -1;
+    domain4 = ecrt_master_create_domain(master);
+    if (!domain4)         return -1;
 
     printf("Creating slave configurations...\n");
 
@@ -601,6 +734,12 @@ int init_ecat(void)
 
     // Create configuration for Domain
     if (ecrt_domain_reg_pdo_entry_list(domain1, domain1_regs))
+    {   fprintf(stderr, "PDO entry registration failed!\n");        return -1;    }
+    if (ecrt_domain_reg_pdo_entry_list(domain2, domain2_regs))
+    {   fprintf(stderr, "PDO entry registration failed!\n");        return -1;    }
+    if (ecrt_domain_reg_pdo_entry_list(domain3, domain3_regs))
+    {   fprintf(stderr, "PDO entry registration failed!\n");        return -1;    }
+    if (ecrt_domain_reg_pdo_entry_list(domain4, domain4_regs))
     {   fprintf(stderr, "PDO entry registration failed!\n");        return -1;    }
 
     ret = ecrt_master_select_reference_clock(master, sc_ek1100);
