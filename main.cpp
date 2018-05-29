@@ -4,6 +4,9 @@
 #include "plc.h"
 #include "ladder.h"
 
+uint32_t s1_32=1, s2_32=2, m1_32=3, m2_32=4;
+uint16_t s1_16=1, s2_16=2, m1_16=3, m2_16=4;
+
 /****************************************************************************/
 
 void my_cyclic(void)
@@ -27,9 +30,11 @@ void my_cyclic(void)
         // receive EtherCAT
         ecrt_master_receive(master);
         ecrt_domain_process(domain1);
+if (*int_memory[0]==0) {
         ecrt_domain_process(domain2);
         ecrt_domain_process(domain3);
         ecrt_domain_process(domain4);
+      }
 
         rt_check_domain_state();
 
@@ -62,11 +67,34 @@ void my_cyclic(void)
         	EC_WRITE_U32(domain1_pd + off_velocity_out1,   0xffef00ff);
         	EC_WRITE_U32(domain1_pd + off_velocity_out2+6, 0x10ff00);	}
 
+          if (*int_memory[0]==0) {
+            s1_32 = EC_READ_U32(domain3_pd + off_el1904_in);
+            s1_16 = EC_READ_U16(domain3_pd + off_el1904_in+4);
+            s2_32 = EC_READ_U32(domain3_pd + off_el2904_in);
+            s2_16 = EC_READ_U16(domain3_pd + off_el2904_in+4);
+            m1_32 = EC_READ_U32(domain4_pd + off_el6900_in1);
+            m1_16 = EC_READ_U16(domain4_pd + off_el6900_in1+4);
+            m2_32 = EC_READ_U32(domain4_pd + off_el6900_in2);
+            m2_16 = EC_READ_U16(domain4_pd + off_el6900_in2+4);
+            ///////////////////////////////////////////////////////////////
+            EC_WRITE_U32(domain2_pd + off_el1904_out,   m1_32);
+            EC_WRITE_U16(domain2_pd + off_el1904_out+4, m1_16);
+            EC_WRITE_U32(domain2_pd + off_el2904_out1,   m2_32);
+            EC_WRITE_U16(domain2_pd + off_el2904_out1+4, m2_16);
+            EC_WRITE_U32(domain4_pd + off_el6900_out1,   s1_32);
+            EC_WRITE_U16(domain4_pd + off_el6900_out1+4, s1_16);
+            EC_WRITE_U32(domain4_pd + off_el6900_out2,   s2_32);
+            EC_WRITE_U16(domain4_pd + off_el6900_out2+4, s2_16);
+          }
+
+
         // queue process data
         ecrt_domain_queue(domain1);
+if (*int_memory[0]==0) {
         ecrt_domain_queue(domain2);
         ecrt_domain_queue(domain3);
         ecrt_domain_queue(domain4);
+      }
 
         // sync distributed clock just before master_send to set
         // most accurate master clock time
@@ -109,10 +137,14 @@ int main(int argc, char *argv[])
         return -1;
     }
 
-    if (!(domain1_pd = ecrt_domain_data(domain1))) {
-        fprintf(stderr, "Failed to get domain data pointer.\n");
-        return -1;
-    }
+    if (!(domain1_pd = ecrt_domain_data(domain1)))
+    { fprintf(stderr, "Failed to get domain data pointer.\n");        return -1;    }
+    if (!(domain2_pd = ecrt_domain_data(domain2)))
+    { fprintf(stderr, "Failed to get domain data pointer.\n");        return -1;    }
+    if (!(domain3_pd = ecrt_domain_data(domain3)))
+    { fprintf(stderr, "Failed to get domain data pointer.\n");        return -1;    }
+    if (!(domain4_pd = ecrt_domain_data(domain4)))
+    { fprintf(stderr, "Failed to get domain data pointer.\n");        return -1;    }
 
     /* Create cyclic RT-thread */
     struct sched_param param;

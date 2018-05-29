@@ -63,7 +63,9 @@ static uint8_t *domain1_pd = NULL;
 static ec_domain_t *domain2 = NULL;
 static ec_domain_t *domain3 = NULL;
 static ec_domain_t *domain4 = NULL;
-
+static uint8_t *domain2_pd = NULL;
+static uint8_t *domain3_pd = NULL;
+static uint8_t *domain4_pd = NULL;
 /****************************************************************************/
 
 // EtherCAT distributed clock variables
@@ -163,20 +165,20 @@ const static ec_pdo_entry_reg_t domain3_regs[] = {
    //{EL2904Pos, Beckhoff_EL2904, 0x7010, 1, &off_el2904_out2, NULL}, //2 bytes
    {EL1904Pos, Beckhoff_EL1904, 0x6000, 1, &off_el1904_in, NULL}, //6 bytes
    {EL2904Pos, Beckhoff_EL2904, 0x6000, 1, &off_el2904_in, NULL}, //6 bytes
-   //{EL6900Pos, Beckhoff_EL6900, 0x6000, 1, &off_el6900_in1, NULL}, //6 bytes
    {}
 };
 
 const static ec_pdo_entry_reg_t domain4_regs[] = {
+    {EL6900Pos, Beckhoff_EL6900, 0x7000, 1, &off_el6900_out1, NULL}, //6 bytes
+    {EL6900Pos, Beckhoff_EL6900, 0x7010, 1, &off_el6900_out2, NULL}, //6 bytes
+    {EL6900Pos, Beckhoff_EL6900, 0xF201, 0, &off_el6900_out3, NULL}, //1 bytes
+    {EL6900Pos, Beckhoff_EL6900, 0xF200, 1, &off_el6900_out4, NULL}, //2 bytes
+    ///////////////////////////////////////////////////////////////////////////
    {EL6900Pos, Beckhoff_EL6900, 0x6000, 1, &off_el6900_in1, NULL}, //6 bytes
    {EL6900Pos, Beckhoff_EL6900, 0x6010, 1, &off_el6900_in2, NULL}, //6 bytes
    {EL6900Pos, Beckhoff_EL6900, 0xF101, 0, &off_el6900_in3, NULL}, //1 bytes
-   {EL6900Pos, Beckhoff_EL6900, 0x2110, 1, &off_el6900_in4, NULL}, //6 bytes
-   {EL6900Pos, Beckhoff_EL6900, 0xF100, 1, &off_el6900_in5, NULL}, //1 bytes
-   {EL6900Pos, Beckhoff_EL6900, 0x7000, 1, &off_el6900_out1, NULL}, //6 bytes
-   {EL6900Pos, Beckhoff_EL6900, 0x7010, 1, &off_el6900_out2, NULL}, //6 bytes
-   {EL6900Pos, Beckhoff_EL6900, 0xF201, 0, &off_el6900_out3, NULL}, //1 bytes
-   {EL6900Pos, Beckhoff_EL6900, 0xF200, 1, &off_el6900_out4, NULL}, //1 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0x2110, 1, &off_el6900_in4, NULL}, //4 bytes
+   {EL6900Pos, Beckhoff_EL6900, 0xF100, 1, &off_el6900_in5, NULL}, //2 bytes
    {}
 };
 
@@ -266,7 +268,7 @@ static ec_pdo_info_t el6900_pdos[] = {
 
 static ec_sync_info_t el6900_syncs[] = {
     {3, EC_DIR_INPUT, 5, el6900_pdos +0},
-    {2, EC_DIR_OUTPUT,4, el6900_pdos +5},  
+    {2, EC_DIR_OUTPUT,4, el6900_pdos +5},
     {0xff}
 };
 
