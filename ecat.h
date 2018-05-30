@@ -151,6 +151,8 @@ static unsigned int off_el6900_in4 = 0;
 static unsigned int off_el6900_out4 = 0;
 static unsigned int off_el6900_in5 = 0;
 
+static unsigned int off_el1004_in = 0;
+
 const static ec_pdo_entry_reg_t domain2_regs[] = {
    {EL1904Pos, Beckhoff_EL1904, 0x7000, 1, &off_el1904_out, NULL}, //6 bytes
    {EL2904Pos, Beckhoff_EL2904, 0x7000, 1, &off_el2904_out1, NULL}, //6 bytes
@@ -165,6 +167,8 @@ const static ec_pdo_entry_reg_t domain3_regs[] = {
    //{EL2904Pos, Beckhoff_EL2904, 0x7010, 1, &off_el2904_out2, NULL}, //2 bytes
    {EL1904Pos, Beckhoff_EL1904, 0x6000, 1, &off_el1904_in, NULL}, //6 bytes
    {EL2904Pos, Beckhoff_EL2904, 0x6000, 1, &off_el2904_in, NULL}, //6 bytes
+
+   {EL1004Pos, Beckhoff_EL1004, 0x6000, 1, &off_el1004_in, NULL}, //6 bytes
    {}
 };
 

@@ -4,9 +4,9 @@
 #include "plc.h"
 #include "ladder.h"
 
-uint32_t s1_32=1, s2_32=2, m1_32=3, m2_32=4;
+uint32_t s1_32=1, s2_32=2, m1_32=3, m2_32=4, cnt=2;
 uint16_t s1_16=1, s2_16=2, m1_16=3, m2_16=4;
-
+uint8_t  v8, bnt=0, dnt=0;
 /****************************************************************************/
 
 void my_cyclic(void)
@@ -72,6 +72,7 @@ if (*int_memory[0]==0) {
             s1_16 = EC_READ_U16(domain3_pd + off_el1904_in+4);
             s2_32 = EC_READ_U32(domain3_pd + off_el2904_in);
             s2_16 = EC_READ_U16(domain3_pd + off_el2904_in+4);
+            v8    = EC_READ_U8 (domain3_pd + off_el1004_in);
             m1_32 = EC_READ_U32(domain4_pd + off_el6900_in1);
             m1_16 = EC_READ_U16(domain4_pd + off_el6900_in1+4);
             m2_32 = EC_READ_U32(domain4_pd + off_el6900_in2);
@@ -85,6 +86,15 @@ if (*int_memory[0]==0) {
             EC_WRITE_U16(domain4_pd + off_el6900_out1+4, s1_16);
             EC_WRITE_U32(domain4_pd + off_el6900_out2,   s2_32);
             EC_WRITE_U16(domain4_pd + off_el6900_out2+4, s2_16);
+            if(cnt==2 && bnt<30)
+            {EC_WRITE_U8 (domain4_pd + off_el6900_out2+6, 0x1e); cnt=0;bnt++;}
+            else
+            {  cnt++;
+               if(cnt>500 && dnt<3)
+               {EC_WRITE_U8 (domain4_pd + off_el6900_out2+6, 0x17); dnt++;}
+               else
+               EC_WRITE_U8 (domain4_pd + off_el6900_out2+6, 0x16);
+            }
           }
 
 
