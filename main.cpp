@@ -49,8 +49,8 @@ if (*int_memory[0]==0) {
         EC_WRITE_U8(domain1_pd + off_dig_out0, blink ? 0x0A : 0x05);
 	if(toggle==0) EC_WRITE_U16(domain1_pd + off_control_out1, 0xe000);
 	else          EC_WRITE_U16(domain1_pd + off_control_out1, 0xe400);
-	if(toggle==0) EC_WRITE_U16(domain1_pd + off_control_out2+6, 0xe000);
-	else          EC_WRITE_U16(domain1_pd + off_control_out2+6, 0xe400);
+	if(toggle==0) EC_WRITE_U16(domain1_pd + off_control_out2+6+4, 0xe000);
+	else          EC_WRITE_U16(domain1_pd + off_control_out2+6+4, 0xe400);
         toggle = !toggle;
         if (!(cycle_counter % 2200)) { tgn = !tgn;}/*
         if (tgn==0) {
@@ -62,10 +62,10 @@ if (*int_memory[0]==0) {
         */
 	if (*int_memory[0]==0) {
         	EC_WRITE_U32(domain1_pd + off_velocity_out1,   0x10ff00);
-        	EC_WRITE_U32(domain1_pd + off_velocity_out2+6, 0xffef00ff);	}
+        	EC_WRITE_U32(domain1_pd + off_velocity_out2+6+8, 0xffef00ff);	}
 	else{
         	EC_WRITE_U32(domain1_pd + off_velocity_out1,   0xffef00ff);
-        	EC_WRITE_U32(domain1_pd + off_velocity_out2+6, 0x10ff00);	}
+        	EC_WRITE_U32(domain1_pd + off_velocity_out2+6+8, 0x10ff00);	}
 
           if (*int_memory[0]==0) {
             s1_32 = EC_READ_U32(domain3_pd + off_el1904_in);

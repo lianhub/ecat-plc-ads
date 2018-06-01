@@ -363,19 +363,29 @@ static ec_sync_info_t el2904_syncs[] = {
 static ec_pdo_entry_info_t ax5206_pdo_entries[] = {
     {134, 0,  16}, // master control word          (MDT1)
     {36,  0,  32}, // velocity command value
+    {47,  0,  32}, // Position command value
     {134, 0,  16}, // master control word          (MDT2)
+    {47,  0,  32}, // Position command value
     {36,  0,  32}, // velocity command value
     {135, 0,  16}, // drive status word            (AT1)
     {51,  0,  32}, // position feedback value
+    {381, 0,  32}, // dc bus current
+    {380, 0,  16}, // dc bus voltage
+    {189, 0,  32}, // following distance
+    {84,  0,  16}, // torque feedback value
+    {0x81c6, 0,  16}, // effective torque command value 0x1c6=454
     {135, 0,  16}, // drive status word            (AT2)
     {51,  0,  32}, // position feedback value
+    {189, 0,  32}, // following distance
+    {84,  0,  16}, // torque feedback value
+    {0x81c6, 0,  16}, // effective torque command value 0x1c6=454
 };
 
 static ec_pdo_info_t ax5206_pdos[] = {
-    {0x0018, 2, ax5206_pdo_entries},
-    {0x1018, 2, ax5206_pdo_entries + 2},
-    {0x0010, 2, ax5206_pdo_entries + 4},
-    {0x1010, 2, ax5206_pdo_entries + 6}
+    {0x0018, 3, ax5206_pdo_entries},
+    {0x1018, 3, ax5206_pdo_entries + 3},
+    {0x0010, 7, ax5206_pdo_entries + 6},
+    {0x1010, 5, ax5206_pdo_entries + 13}
 };
 
 static ec_sync_info_t ax5206_syncs[] = {
