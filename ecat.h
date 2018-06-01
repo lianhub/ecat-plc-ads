@@ -403,10 +403,10 @@ static ec_pdo_entry_info_t el1004_channels[] = {
 };
 
 static ec_pdo_info_t el1004_pdos[] = {
-    {0x1A00, 1, &el1004_channels[0]},
-    {0x1A01, 1, &el1004_channels[1]},
-    {0x1A02, 1, &el1004_channels[2]},
-    {0x1A03, 1, &el1004_channels[3]}
+    {0x1A00, 1, el1004_channels},
+    {0x1A01, 1, el1004_channels + 1},
+    {0x1A02, 1, el1004_channels + 2},
+    {0x1A03, 1, el1004_channels + 3}
 };
 
 static ec_sync_info_t el1004_syncs[] = {
