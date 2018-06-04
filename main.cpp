@@ -6,7 +6,8 @@
 
 uint32_t s1_32=1, s2_32=2, m1_32=3, m2_32=4, cnt=2;
 uint16_t s1_16=1, s2_16=2, m1_16=3, m2_16=4;
-uint8_t  in_el1004, in_el6900_outvar=0, bnt=0, dnt=0;
+uint8_t  in_el1004, in_el6900_outvar=0, bnt=0;
+bool start_plc = 0;
 /****************************************************************************/
 
 void my_cyclic(void)
@@ -38,12 +39,16 @@ void my_cyclic(void)
         if (!(cycle_counter % 1000))     rt_check_master_state();
         if (!(cycle_counter % 200))      blink = !blink;
 
-        EC_WRITE_U8(domain1_pd + off_dig_out0, blink ? 0x0A : 0x05);
-        if( (in_el6900_outvar & 1) == 0 ){
+        if( (in_el6900_outvar & 1) == 0 || start_plc == 0){
+           if(start_plc == 0)
+              EC_WRITE_U8(domain1_pd + off_dig_out0, blink ? 0x0A : 0x05);
+           else
+              EC_WRITE_U8(domain1_pd + off_dig_out0, blink ? 0x0F : 0x0);
            EC_WRITE_U16(domain1_pd + off_control_out1,     0x6400);
            EC_WRITE_U16(domain1_pd + off_control_out2+6+4, 0x6400);
          }
         else{
+           EC_WRITE_U8(domain1_pd + off_dig_out0, 0x0F);
 	         if(toggle==0) EC_WRITE_U16(domain1_pd + off_control_out1, 0xe000);
 	         else          EC_WRITE_U16(domain1_pd + off_control_out1, 0xe400);
 	         if(toggle==0) EC_WRITE_U16(domain1_pd + off_control_out2+6+4, 0xe000);
@@ -67,6 +72,7 @@ void my_cyclic(void)
           }
 
           if (*int_memory[0]==0) {
+            start_plc = 1;
             s1_32 = EC_READ_U32(domain3_pd + off_el1904_in);
             s1_16 = EC_READ_U16(domain3_pd + off_el1904_in+4);
             s2_32 = EC_READ_U32(domain3_pd + off_el2904_in);
@@ -91,12 +97,15 @@ void my_cyclic(void)
             {EC_WRITE_U8 (domain4_pd + off_el6900_out2+6, 0x1e); cnt=0;bnt++;}
             else
             {  cnt++;
-               //if(cnt>500 && dnt<3)
                if( (in_el1004 & 4) == 4)
-               {EC_WRITE_U8 (domain4_pd + off_el6900_out2+6, 0x17); dnt++;}
+                  EC_WRITE_U8 (domain4_pd + off_el6900_out2+6, 0x17);
                else
-               EC_WRITE_U8 (domain4_pd + off_el6900_out2+6, 0x16);
+                  EC_WRITE_U8 (domain4_pd + off_el6900_out2+6, 0x16);
             }
+          }
+          else {
+            cnt=0; bnt=0; //errAck
+            start_plc = 0;
           }
 
         // queue process data
