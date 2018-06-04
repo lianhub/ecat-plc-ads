@@ -28,7 +28,7 @@ void my_cyclic(void)
         ecrt_master_receive(master);
 
         ecrt_domain_process(domain1);
-        if (*int_memory[0]==0) {
+        if (*int_memory[0] > 0) {
           ecrt_domain_process(domain2);
           ecrt_domain_process(domain3);
           ecrt_domain_process(domain4);
@@ -63,7 +63,7 @@ void my_cyclic(void)
         	EC_WRITE_U32(domain1_pd + off_velocity_out1,   0xffef00ff);
         	EC_WRITE_U32(domain1_pd + off_velocity_out2+6, 0x10ff00);	}
         */
-	       if (*int_memory[0]==0) {
+	       if (*int_memory[0]==2) {
         	  EC_WRITE_U32(domain1_pd + off_velocity_out1,   0x10ff00);
         	  EC_WRITE_U32(domain1_pd + off_velocity_out2+6+8, 0xffef00ff);	}
 	       else{
@@ -71,7 +71,7 @@ void my_cyclic(void)
         	  EC_WRITE_U32(domain1_pd + off_velocity_out2+6+8, 0x10ff00);
           }
 
-          if (*int_memory[0]==0) {
+          if (*int_memory[0] > 0) {
             start_plc = 1;
             s1_32 = EC_READ_U32(domain3_pd + off_el1904_in);
             s1_16 = EC_READ_U16(domain3_pd + off_el1904_in+4);
@@ -110,7 +110,7 @@ void my_cyclic(void)
 
         // queue process data
         ecrt_domain_queue(domain1);
-        if (*int_memory[0]==0) {
+        if (*int_memory[0] > 0) {
           ecrt_domain_queue(domain2);
           ecrt_domain_queue(domain3);
           ecrt_domain_queue(domain4);
@@ -136,7 +136,7 @@ void my_cyclic(void)
 
 int main(int argc, char *argv[])
 {
-    init_plc(argc, argv);
+    init_plc(argc, argv); *int_memory[0] = 0;
     init_ecat();
     /* Set the initial master time and select a slave to use as the DC
      * reference clock, otherwise pass NULL to auto select the first capable
