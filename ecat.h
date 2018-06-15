@@ -39,6 +39,7 @@
 
 #include "ecrt.h"
 #include "config_idns.h"
+#include "config_sdos.h"
 /****************************************************************************/
 
 #define NSEC_PER_SEC (1000000000L)
@@ -747,6 +748,7 @@ int init_ecat(void)
     //*************Config IDNs*********************************************************
     config_idns(sc_ax);
     ecrt_slave_config_dc(sc_ax, 0x0730, 0x0003d090, 0, 0x001ab3f0, 0);
+    //config_sdos(master);
 
     // Create configuration for Domain
     if (ecrt_domain_reg_pdo_entry_list(domain1, domain1_regs))
@@ -757,7 +759,7 @@ int init_ecat(void)
     {   fprintf(stderr, "PDO entry registration failed!\n");        return -1;    }
     if (ecrt_domain_reg_pdo_entry_list(domain4, domain4_regs))
     {   fprintf(stderr, "PDO entry registration failed!\n");        return -1;    }
-
+config_sdos(master);
     ret = ecrt_master_select_reference_clock(master, sc_ek1100);
     if (ret < 0)
     {   fprintf(stderr, "Failed to select reference clock: %s\n", strerror(-ret));  return ret; }
